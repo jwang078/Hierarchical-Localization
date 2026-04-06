@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import sqlite3
 import pycolmap
 import tqdm
 
@@ -67,7 +68,13 @@ def incremental_mapping(
     sfm_path: Path,
     options: Optional[Dict[str, Any]] = None,
 ) -> dict[int, pycolmap.Reconstruction]:
-    num_images = pycolmap.Database(database_path).num_images
+    # num_images = pycolmap.Database(str(database_path)).num_images
+    con = sqlite3.connect(str(database_path))
+    cursor = con.cursor()
+    cursor.execute("SELECT count(*) FROM images;")
+    num_images = cursor.fetchone()[0]
+    con.close()
+
     pbars = []
 
     def restart_progress_bar():
